@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>批量口播识别剪辑器</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23087f8c'/%3E%3Cpath d='M18 34h6l5-12 8 24 5-12h4' fill='none' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./cutter.css" />
+  </head>
+  <body class="dashboard-page">
+    <main class="batch-shell">
+      <header class="batch-header">
+        <div>
+          <p>批量处理</p>
+          <h1>批量口播识别剪辑器</h1>
+          <span class="batch-status" id="batchStatus">批量上传后会按顺序识别口播，并自动填入剪辑参数。</span>
+        </div>
+        <div class="batch-actions" aria-label="批量操作">
+          <button class="secondary-button" id="batchUploadButton" type="button">批量上传视频</button>
+          <button class="secondary-button" id="addTaskButton" type="button">添加任务</button>
+          <button class="primary-button" id="recognizeAllButton" type="button" disabled>开始批量识别</button>
+          <button class="primary-button" id="generateAllButton" type="button" disabled>批量剪切生成视频</button>
+          <button class="secondary-button" id="downloadAllButton" type="button" disabled>下载全部剪切视频</button>
+          <input id="batchVideoInput" type="file" accept="video/*" multiple />
+        </div>
+      </header>
+
+      <section class="task-stack" id="taskStack" aria-label="视频处理任务列表"></section>
+    </main>
+
+    <template id="taskTemplate">
+      <article class="task-card">
+        <header class="task-card-header">
+          <div>
+            <span class="task-kicker">视频处理任务</span>
+            <h2>任务 <span data-task-number></span></h2>
+            <p class="task-status" data-task-status>等待上传视频</p>
+          </div>
+          <button class="secondary-button task-remove" type="button">移除任务</button>
+        </header>
+
+        <section class="task-batch-panel">
+          <div class="task-video-summary">
+            <div>
+              <span class="task-kicker">视频文件</span>
+              <strong data-file-name>未选择视频</strong>
+              <small data-file-meta>可从顶部批量上传，也可以单独选择。</small>
+            </div>
+            <div class="task-local-actions">
+              <button class="secondary-button" data-pick-file type="button">选择视频</button>
+              <button class="secondary-button" data-recognize-one type="button" disabled>识别口播</button>
+              <button class="primary-button" data-generate-one type="button" disabled>剪切生成</button>
+              <button class="secondary-button" data-download-one type="button" disabled>下载</button>
+              <input data-task-file-input type="file" accept="video/*" />
+            </div>
+          </div>
+
+          <video class="batch-preview" data-video-preview controls playsinline></video>
+
+          <div class="recognition-panel">
+            <div class="recognition-head">
+              <div>
+                <span class="task-kicker">识别结果</span>
+                <strong data-recognition-title>等待识别</strong>
+              </div>
+              <div class="match-tools">
+                <select data-match-select disabled></select>
+                <button class="secondary-button" data-apply-match type="button" disabled>应用到剪辑参数</button>
+                <button class="secondary-button" data-copy-result type="button" disabled>复制结果</button>
+              </div>
+            </div>
+            <div class="task-progress-track">
+              <div data-recognition-progress></div>
+            </div>
+            <p class="recognition-message" data-recognition-message>等待上传视频。</p>
+            <div class="recognition-table-wrap" data-recognition-table-wrap hidden>
+              <table class="recognition-table">
+                <thead>
+                  <tr>
+                    <th>序号</th>
+                    <th>识别内容</th>
+                    <th>视频开始时间</th>
+                    <th>关键词开始时间（前推0.5秒）</th>
+                    <th>关键词结束时间</th>
+                    <th>口播完整结束时间（后延0.5秒）</th>
+                    <th>视频结束时间</th>
+                  </tr>
+                </thead>
+                <tbody data-recognition-body></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <details class="task-cutter-details" open>
+          <summary>剪切配置与尾版</summary>
+          <iframe class="task-frame" title="视频处理任务" src="./task.html"></iframe>
+        </details>
+      </article>
+    </template>
+
+    <script type="module" src="./dashboard.js"></script>
+  </body>
+</html>

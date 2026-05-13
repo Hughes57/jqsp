@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>视频片段剪辑器</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23087f8c'/%3E%3Cpath d='M18 34h6l5-12 8 24 5-12h4' fill='none' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./cutter.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace" aria-label="视频剪辑工作区">
+        <div class="video-pane">
+          <div class="video-stage" id="dropZone">
+            <video id="sourceVideo" controls playsinline></video>
+            <div class="empty-state" id="emptyState">
+              <div class="upload-mark" aria-hidden="true">+</div>
+              <h1>视频片段剪辑器</h1>
+              <p>把视频拖到这里，或点击选择文件</p>
+              <button class="primary-button" id="pickVideoButton" type="button">选择视频</button>
+            </div>
+            <input id="videoInput" type="file" accept="video/*" />
+          </div>
+
+          <div class="timeline" aria-label="视频时间轴">
+            <div class="timeline-bar">
+              <div class="selection-fill" id="selectionFill"></div>
+            </div>
+            <div class="range-row">
+              <input id="startRange" type="range" min="0" max="0" value="0" step="0.01" aria-label="开始时间" />
+              <input id="endRange" type="range" min="0" max="0" value="0" step="0.01" aria-label="结束时间" />
+            </div>
+            <div class="time-readout">
+              <span id="currentTime">00:00:00</span>
+              <span id="durationTime">00:00:00</span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="control-pane" aria-label="剪辑控制">
+          <header class="panel-header">
+            <p>输入要保留的时间段</p>
+            <h2 id="fileName">还没有选择视频</h2>
+          </header>
+
+          <div class="field-grid">
+            <label class="time-field">
+              <span>开始</span>
+              <input id="startInput" type="text" inputmode="decimal" placeholder="00:10:25" value="00:00:00" />
+            </label>
+            <label class="time-field">
+              <span>结束</span>
+              <input id="endInput" type="text" inputmode="decimal" placeholder="00:19:80" value="00:00:00" />
+            </label>
+          </div>
+
+          <div class="quick-actions">
+            <button id="markStartButton" type="button">当前设为开始</button>
+            <button id="markEndButton" type="button">当前设为结束</button>
+          </div>
+
+          <div class="clip-summary">
+            <span>片段长度</span>
+            <strong id="clipLength">00:00:00</strong>
+          </div>
+
+          <section class="tail-panel" aria-label="保留片段">
+            <div class="tail-head">
+              <div>
+                <span>保留片段</span>
+                <strong id="segmentsSummary">使用当前时间段</strong>
+              </div>
+            </div>
+            <div class="quick-actions">
+              <button id="addSegmentButton" type="button">添加当前片段</button>
+              <button id="clearSegmentsButton" type="button">清空片段</button>
+            </div>
+            <div class="segment-list" id="segmentList">
+              <p class="tail-empty">未添加片段时，会直接使用上面的开始和结束时间。</p>
+            </div>
+          </section>
+
+          <section class="tail-panel" aria-label="尾版视频库">
+            <div class="tail-head">
+              <div>
+                <span>尾版视频</span>
+                <strong id="tailSummary">未选择</strong>
+              </div>
+              <button class="icon-button" id="pickTailButton" type="button" title="上传尾版">+</button>
+            </div>
+            <input id="tailInput" type="file" accept="video/*" multiple />
+            <div class="tail-list" id="tailList">
+              <label class="tail-item selected">
+                <input type="radio" name="tail" value="" checked />
+                <span>不拼接尾版</span>
+              </label>
+            </div>
+          </section>
+
+          <section class="tail-panel" aria-label="尾版音轨">
+            <div class="tail-head">
+              <div>
+                <span>尾版音轨</span>
+                <strong id="tailAudioLength">00:00:00</strong>
+              </div>
+            </div>
+            <div class="field-grid">
+              <label class="time-field">
+                <span>音轨开始</span>
+                <input id="tailAudioStartInput" type="text" inputmode="decimal" placeholder="00:12:00" value="00:00:00" />
+              </label>
+              <label class="time-field">
+                <span>音轨结束</span>
+                <input id="tailAudioEndInput" type="text" inputmode="decimal" placeholder="00:17:50" value="00:00:00" />
+              </label>
+            </div>
+            <div class="quick-actions">
+              <button id="markTailAudioStartButton" type="button">当前设为音轨开始</button>
+              <button id="markTailAudioEndButton" type="button">当前设为音轨结束</button>
+            </div>
+          </section>
+
+          <div class="action-stack">
+            <button class="secondary-button" id="previewButton" type="button" disabled>预览片段</button>
+            <button class="primary-button" id="trimButton" type="button" disabled>一键生成 MP4</button>
+            <button class="secondary-button fallback-button" id="webmButton" type="button" disabled>备用 WebM 导出</button>
+          </div>
+
+          <div class="progress-area" aria-live="polite">
+            <div class="progress-track">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p id="statusText">选择一个视频后就可以开始。</p>
+          </div>
+
+          <a class="download-link" id="downloadLink" download="clip.mp4">下载剪辑片段</a>
+        </aside>
+      </section>
+    </main>
+
+    <script src="./cutter-task.js"></script>
+  </body>
+</html>

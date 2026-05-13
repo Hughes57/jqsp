@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>目标口播时间点识别</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23087f8c'/%3E%3Cpath d='M18 34h6l5-12 8 24 5-12h4' fill='none' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script defer src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Audio Marker</p>
+          <h1>目标口播时间点识别</h1>
+          <p class="status-line" id="statusLine">上传视频后自动分析音轨。</p>
+        </div>
+        <div class="topbar-actions">
+          <a class="ghost-button" href="./batch.html" target="_blank" rel="noreferrer">
+            <i data-lucide="layers"></i>
+            <span>批量处理</span>
+          </a>
+          <button class="ghost-button" id="copyAllButton" type="button" disabled>
+            <i data-lucide="copy"></i>
+            <span>复制全部</span>
+          </button>
+          <button class="primary-button" id="analyzeButton" type="button" disabled>
+            <i data-lucide="scan-line"></i>
+            <span>重新分析</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <section class="upload-panel" aria-label="视频上传与预览">
+          <div class="drop-zone" id="dropZone">
+            <input id="videoInput" type="file" accept="video/*" />
+            <label for="videoInput" class="upload-target">
+              <i data-lucide="upload-cloud"></i>
+              <strong>选择或拖入视频文件</strong>
+              <span id="fileMeta">支持浏览器可解码的视频音轨</span>
+            </label>
+          </div>
+
+          <video id="videoPreview" controls playsinline></video>
+
+          <div class="settings-grid">
+            <div class="target-box">
+              <span>识别目标</span>
+              <div class="target-tags" id="targetList" aria-label="识别目标列表">
+                <span>open rayme</span>
+                <span>open heystar</span>
+                <span>Open HAYE-DAR</span>
+                <span>open vstyle</span>
+                <span>open guma</span>
+                <span>Open Haster</span>
+                <span>Open Hi-God!</span>
+                <span>Open style</span>
+              </div>
+            </div>
+            <label>
+              <span>识别模型</span>
+              <select id="modelSelect">
+                <option value="Xenova/whisper-tiny.en">Tiny EN / 快</option>
+                <option value="Xenova/whisper-base.en" selected>Base EN / 平衡</option>
+                <option value="Xenova/whisper-small.en">Small EN / 更准</option>
+              </select>
+            </label>
+            <label>
+              <span>口播停顿(ms)</span>
+              <input id="silenceInput" type="number" min="300" max="2500" step="50" value="750" />
+            </label>
+          </div>
+
+          <div class="progress-wrap" aria-label="分析进度">
+            <div class="progress-track">
+              <div id="progressBar"></div>
+            </div>
+            <span id="progressText">等待视频</span>
+          </div>
+        </section>
+
+        <section class="result-panel" aria-label="识别结果">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Result</p>
+              <h2>关键时间点</h2>
+            </div>
+            <span class="result-count" id="resultCount">0 次</span>
+          </div>
+
+          <div class="empty-result" id="emptyResult">尚未上传视频。</div>
+
+          <div class="table-wrap" id="resultWrap" hidden>
+            <table>
+              <thead>
+                <tr>
+                  <th>序号</th>
+                  <th>识别内容</th>
+                  <th>视频开始时间</th>
+                  <th>关键词开始时间（前推0.5秒）</th>
+                  <th>关键词结束时间</th>
+                  <th>口播完整结束时间（后延0.5秒）</th>
+                  <th>视频结束时间</th>
+                </tr>
+              </thead>
+              <tbody id="resultBody"></tbody>
+            </table>
+          </div>
+
+          <textarea id="copyText" readonly spellcheck="false" aria-label="可复制结果"></textarea>
+
+          <div class="autofill-panel" id="autofillPanel" hidden>
+            <label>
+              <span>用于自动填充的识别结果</span>
+              <select id="matchSelect"></select>
+            </label>
+            <button class="primary-button" id="applyMatchButton" type="button">
+              <i data-lucide="wand-sparkles"></i>
+              <span>填入剪辑配置</span>
+            </button>
+            <p id="autofillStatus">默认使用第 1 条识别结果。</p>
+          </div>
+
+          <details class="transcript-box">
+            <summary>转写文本</summary>
+            <textarea id="transcriptText" readonly spellcheck="false" aria-label="音轨转写文本"></textarea>
+          </details>
+        </section>
+      </section>
+
+      <section class="cutter-shell" aria-label="单视频处理板块">
+        <header class="section-head">
+          <div>
+            <p class="eyebrow">Cutter</p>
+            <h2>单视频处理板块</h2>
+          </div>
+          <span class="result-count" id="cutterStatus">等待视频</span>
+        </header>
+        <iframe class="cutter-frame" id="cutterFrame" title="单视频剪辑器" src="./task.html?integrated=1"></iframe>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
